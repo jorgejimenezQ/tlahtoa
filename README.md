@@ -1,6 +1,6 @@
 # Tlahtoa
 
-**_ This Readme is a stand in for the actual readme. It will be updated, or replaced, as the project progresses. _**
+**This Readme is a stand in for the actual readme. It will be updated, or replaced, as the project progresses.**
 
 Tlahtoa is a terminal-based chat application that allows users to communicate in real-time from a command-line interface.
 
