@@ -14,9 +14,13 @@ export default class UI {
     // start the chat ui
     /**
      * Starts the UI.
+     *
      * This method should be called after the UI object is created.
      * It will display the UI and start listening for user input.
      *
      */
     start() {}
+
+    // private method
+    #displayMenu() {}
 }
