@@ -1,3 +1,10 @@
 # git ignore file for node projects
 
 node_modules
+
+npm-debug.log
+
+# log files
+
+*.log
+log.*

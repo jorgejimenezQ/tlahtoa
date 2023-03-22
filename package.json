@@ -3,9 +3,12 @@
     "version": "0.0.1",
     "description": "Tlahtoa is a command-line interface (CLI) application that enables real-time chatting in a terminal window. Tlahtoa allows users to create their own chat rooms and invite others to join.",
     "type": "module",
-    "main": "src/index.js",
-    "bin": "src/index.js",
+    "main": "lib/index.js",
+    "bin": "lib/index.js",
     "scripts": {
+        "dev": "nodemon lib/index.js",
+        "start": "node lib/index.js",
+        "startWithTest": "node test/index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "repository": {
