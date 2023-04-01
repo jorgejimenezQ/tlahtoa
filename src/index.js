@@ -1,6 +1,9 @@
-import { testClient } from './userInterface/UI.js'
+// import { testClient } from './userInterface/UI.js'
 
-testClient()
+// testClient()
+
+import { UI } from './userInterface/UI.js'
+export default UI
 
 // import termkit from 'terminal-kit'
 // const term = termkit.terminal

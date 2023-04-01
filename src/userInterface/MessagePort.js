@@ -14,7 +14,7 @@ export class MessagePort extends EventEmitter {
     #scrolled = 'none'
 
     // The default background color of the message port.
-    #defaultBGColor = 123
+    #defaultBGColor = 0
     #defaultColor = 'white'
 
     #currentBGColor = this.#defaultBGColor
@@ -98,6 +98,59 @@ export class MessagePort extends EventEmitter {
             return // Don't update the buffer since the message port is scrolled down.
         }
     }
+
+    /**
+     * Scrolls the message port down one line.
+     * @returns {void}
+     */
+    scrollUp() {
+        // Don't scroll up if the message port is already scrolled up.
+        if (this.#bottom.length === 0 && this.#view.length === 1) return
+
+        // No messages
+        if (this.#view.length === 0) return
+
+        // Shift the view up one message and add the message to the top of the view.
+        const viewMessage = this.#view.shift()
+        this.#top.push(viewMessage)
+        this.#currentLine -= viewMessage.messageLines
+
+        // Shift the bottom
+        if (this.#bottom.length > 0) {
+            const bottomMessage = this.#bottom.shift()
+            this.#view.push(bottomMessage)
+            this.#currentLine += bottomMessage.messageLines
+        }
+
+        this.#updateBuffer()
+    }
+
+    /**
+     * Scrolls the message port down one line.
+     * @returns {void}
+     * */
+    scrollDown() {
+        // Don't scroll down if the message port is already scrolled down.
+        if (this.#view.length === 0) return
+        if (this.#view.length === 1 && this.#top.length === 0) return
+
+        let viewMessage
+        if (this.#top.length > 0) {
+            const topMessage = this.#top.pop()
+            viewMessage = this.#view.unshift(topMessage)
+        }
+
+        // Shift the bottom
+        if (this.#bottom.length > 0) {
+            this.#bottom.unshift(viewMessage)
+        }
+
+        this.#updateBuffer()
+    }
+
+    /************************************************************ */
+    // U T I L I T Y   F U N C T I O N S
+    /************************************************************ */
 
     #scrollUpWithMessage(message, attr, messageLines) {
         let lastMessage = this.#view.shift()

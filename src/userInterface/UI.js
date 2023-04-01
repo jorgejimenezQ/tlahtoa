@@ -29,6 +29,8 @@ export class UI extends EventEmitter {
     #msgPortX = 1
     #msgPortY = 5
 
+    #started = false
+
     #currentToken = ''
 
     #colorThemes = {}
@@ -95,6 +97,7 @@ export class UI extends EventEmitter {
      *
      */
     start(callback) {
+        if (this.#started) return
         term.getDetectedTerminal((error, detectedTerm) => {
             if (error) {
                 console.log('Error: ' + error)
@@ -147,16 +150,41 @@ export class UI extends EventEmitter {
             // clear the screen
             this.terminal.clear()
 
-            // Detect user input
-            this.terminal.moveTo(1, this.terminal.height - 1, this.#msgPrompt)
-            this.#detectInput()
-
-            // Draw the UI.
-            this.messagePort.draw()
-            this.uiPort.draw()
-
             // Call the callback function.
             if (callback) callback()
+        })
+        this.#started = true
+    }
+
+    startMainScreen(callback) {
+        if (!this.#started) return
+        this.terminal.moveTo(1, this.terminal.height - 1, this.#msgPrompt)
+        this.#detectInput()
+
+        // Draw the UI.
+        this.messagePort.draw()
+        this.uiPort.draw()
+
+        if (callback) callback()
+    }
+
+    async startSignIn(callback) {
+        if (!this.#started) return
+
+        this.terminal.moveTo(1, 1, 'Username: ')
+        var username = await this.terminal.inputField().promise
+
+        this.terminal.moveTo(1, 2, 'Password: ')
+        var password = await this.terminal.inputField().promise
+
+        return new Promise((resolve, reject) => {
+            if (username === undefined || username == '')
+                reject(new Error('Username is undefined or empty.'))
+
+            if (password === undefined || password == '')
+                reject(new Error('Password is undefined or empty.'))
+
+            resolve({ username: username, password: password })
         })
     }
 
@@ -180,9 +208,10 @@ export class UI extends EventEmitter {
         if (msgObject.username === undefined || msgObject.username == '')
             throw new Error('Username is undefined or empty.')
 
+        let color = 0
         if (!this.#users.has(msgObject.username)) {
             if (msgObject.color === undefined || msgObject.color == '') {
-                const color = Math.floor(Math.random() * 255)
+                color = Math.floor(Math.random() * 255)
                 while (this.#colors.has(color)) {
                     color = Math.floor(Math.random() * 255)
                 }
@@ -190,11 +219,12 @@ export class UI extends EventEmitter {
                 this.#users.set(msgObject.username, { color: color })
                 msgObject.color = color
             } else {
-                const color = msgObject.color
+                color = msgObject.color
+                this.#users.set(msgObject.username, { color: color })
             }
         }
 
-        // msgObject.color = this.#users.get(msgObject.username).color
+        msgObject.color = this.#users.get(msgObject.username).color
 
         // Add the message to the message buffer.
         this.messagePort.appendMessage(`${msgObject.username}: ${msgObject.message}`, {
@@ -258,10 +288,14 @@ export class UI extends EventEmitter {
             //     this.#currentToken = this.#currentToken.slice(0, -1)
             //     this.terminal.moveTo(1, this.terminal.height, this.#currentToken)
             //     break
-            case 'UP':
-                break
             case 'TAB':
                 this.emit('tabPressed')
+                break
+            case 'DOWN':
+                this.messagePort.scrollDown()
+                break
+            case 'UP':
+                this.messagePort.scrollUp()
                 break
             default:
                 break
@@ -297,6 +331,34 @@ export class UI extends EventEmitter {
                 },
             },
         }
+    }
+
+    #getForeground(color) {
+        // Convert color to RGB format
+        let rgbColor
+        if (color.substring(0, 1) === '#') {
+            // Hexadecimal format
+            rgbColor = [
+                parseInt(color.substring(1, 3), 16),
+                parseInt(color.substring(3, 5), 16),
+                parseInt(color.substring(5, 7), 16),
+            ]
+        } else if (color.substring(0, 3) === 'rgb') {
+            // RGB or RGBA format
+            rgbColor = color.match(/\d+/g).map((value) => parseInt(value))
+        } else {
+            throw new Error('Unsupported color format')
+        }
+
+        // Convert background color to grayscale
+        const grayscaleValue = 0.299 * rgbColor[0] + 0.587 * rgbColor[1] + 0.114 * rgbColor[2]
+
+        // Calculate contrast ratio with white and black
+        const contrastRatioWhite = (grayscaleValue + 0.05) / (1.0 + 0.05)
+        const contrastRatioBlack = (grayscaleValue + 0.05) / (0.0 + 0.05)
+
+        // Choose foreground color based on contrast ratio
+        return contrastRatioWhite >= contrastRatioBlack ? '#ffffff' : '#000000'
     }
 
     #displayMenu() {}
