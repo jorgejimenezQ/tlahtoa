@@ -1,6 +1,7 @@
 import term from 'terminal-kit'
 import { EventEmitter } from 'events'
 import { MessagePort } from './MessagePort.js'
+import Menu from './Menu.js'
 
 var ScreenBuffer = term.ScreenBuffer
 var TextBuffer = term.TextBuffer
@@ -8,6 +9,7 @@ var TextBox = term.TextBox
 
 const terminal = term.terminal
 
+export { Menu }
 export class UI extends EventEmitter {
     /************************* */
     // private fields
