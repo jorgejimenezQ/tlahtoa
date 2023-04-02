@@ -83,7 +83,7 @@ export class MessagePort extends EventEmitter {
         // Is the port scrolled?
         if (this.#currentMessageLocation === 'view') {
             // Is the message port full?
-            if (this.#currentLine >= this.height - messageLines) {
+            if (this.#currentLine >= this.height - messageLines && this.#view.length > 0) {
                 this.#scrollUpWithMessage(message, attr, messageLines)
             } else {
                 this.#view.push({ message, attr, messageLines })
@@ -158,7 +158,8 @@ export class MessagePort extends EventEmitter {
         this.#currentLine -= lastMessage.messageLines
 
         // Shift the view up one message and add the message to the top of the view.
-        while (this.#currentLine >= this.height - messageLines) {
+        // and we have more messages in the bottom
+        while (this.#currentLine >= this.height - messageLines && this.#bottom.length > 0) {
             lastMessage = this.#view.shift()
             this.#top.push(lastMessage)
             this.#currentLine -= lastMessage.messageLines

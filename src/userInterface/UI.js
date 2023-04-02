@@ -27,12 +27,15 @@ export class UI extends EventEmitter {
     #currentMsgLines = 0
 
     #msgPortX = 1
-    #msgPortY = 5
+    #msgPortY = 1
 
     #signInX = 1
     #signInY = 4
 
     #started = false
+
+    #uiPortX = 1
+    #uiPortY = 3
 
     #currentToken = ''
 
@@ -116,10 +119,10 @@ export class UI extends EventEmitter {
             // Initialize the UI port.
             this.uiPort = new ScreenBuffer({
                 dst: this.terminal,
-                width: Math.min(this.terminal.width),
-                height: Math.min(this.terminal.height - 5),
-                x: 1,
-                y: 3,
+                width: this.terminal.width,
+                height: this.terminal.height - this.#msgPortY - 3,
+                x: this.#uiPortX,
+                y: this.#uiPortY,
                 attr: {
                     color: 'white',
                     bgColor: 'red',
@@ -135,7 +138,7 @@ export class UI extends EventEmitter {
 
             // Update the message port width and height.
             this.#msgPortWidth = this.uiPort.width / 2
-            this.#msgPortHeight = this.uiPort.height - 4
+            this.#msgPortHeight = this.uiPort.height
 
             // Create the message box.
             this.messagePort = new MessagePort({
@@ -168,7 +171,7 @@ export class UI extends EventEmitter {
         this.messagePort.draw()
         this.uiPort.draw()
 
-        if (callback) callback()
+        if (callback) callback(this)
     }
 
     /**
@@ -327,6 +330,7 @@ export class UI extends EventEmitter {
     #keyInputs(key) {
         switch (key) {
             case 'CTRL_C':
+                this.emit('exitProgram')
                 this.terminate()
                 break
             // backspace
@@ -342,6 +346,33 @@ export class UI extends EventEmitter {
                 break
             case 'UP':
                 this.messagePort.scrollUp()
+                break
+            case 'CTRL_A':
+                this.emit('menuKey', '1')
+                break
+            case 'CTRL_B':
+                this.emit('menuKey', '2')
+                break
+            case 'CTRL_D':
+                this.emit('menuKey', '4')
+                break
+            case 'CTRL_E':
+                this.emit('menuKey', '5')
+                break
+            case 'CTRL_F':
+                this.emit('menuKey', '6')
+                break
+            case 'CTRL_G':
+                this.emit('menuKey', '7')
+                break
+            case 'CTRL_H':
+                this.emit('menuKey', '8')
+                break
+            case 'CTRL_I':
+                this.emit('menuKey', '9')
+                break
+            case 'CTRL_J':
+                this.emit('menuKey', '10')
                 break
             default:
                 break
