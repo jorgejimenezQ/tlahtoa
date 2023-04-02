@@ -1,6 +1,7 @@
 import term from 'terminal-kit'
 import { EventEmitter } from 'events'
 import { MessagePort } from './MessagePort.js'
+import Menu from './Menu.js'
 
 var ScreenBuffer = term.ScreenBuffer
 var TextBuffer = term.TextBuffer
@@ -8,6 +9,7 @@ var TextBox = term.TextBox
 
 const terminal = term.terminal
 
+export { Menu }
 export class UI extends EventEmitter {
     /************************* */
     // private fields
@@ -368,9 +370,10 @@ export class UI extends EventEmitter {
             case 'CTRL_H':
                 this.emit('menuKey', '8')
                 break
-            case 'CTRL_I':
-                this.emit('menuKey', '9')
-                break
+            // CTRL_I is tab
+            // case 'CTRL_I':
+            //     this.emit('menuKey', '9')
+            //     break
             case 'CTRL_J':
                 this.emit('menuKey', '10')
                 break
