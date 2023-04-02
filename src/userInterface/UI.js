@@ -29,6 +29,9 @@ export class UI extends EventEmitter {
     #msgPortX = 1
     #msgPortY = 5
 
+    #signInX = 1
+    #signInY = 4
+
     #started = false
 
     #currentToken = ''
@@ -116,7 +119,7 @@ export class UI extends EventEmitter {
                 width: Math.min(this.terminal.width),
                 height: Math.min(this.terminal.height - 5),
                 x: 1,
-                y: 1,
+                y: 3,
                 attr: {
                     color: 'white',
                     bgColor: 'red',
@@ -168,23 +171,66 @@ export class UI extends EventEmitter {
         if (callback) callback()
     }
 
-    async startSignIn(callback) {
+    /**
+     * Displays a banner at the top of the UI.
+     * @param {string} message - The message to display.
+     * @param {string} [ color ] - The color of the message.
+     * @param {string} [ bgColor ] - The background color of the message.
+     * @public
+     * @example
+     * ui.displayBanner('Welcome to the chat!')
+     * ui.displayBanner('Welcome to the chat!', 'red')
+     * ui.displayBanner('Welcome to the chat!', 'red', 'blue')
+     * ui.displayBanner('Welcome to the chat!', 'red', 'blue', 'bold')
+     * ui.displayBanner('Welcome to the chat!', 'red', 'blue', 'bold', 'underline')
+     * ui.displayBanner('Welcome to the chat!', 'red', 'blue', 'bold', 'underline', 'blink')
+     */
+    banner(message, color, bgColor) {
         if (!this.#started) return
 
-        this.terminal.moveTo(1, 1, 'Username: ')
-        var username = await this.terminal.inputField().promise
+        // Clear the banner.
+        this.terminal.moveTo(1, 1).eraseLine()
 
-        this.terminal.moveTo(1, 2, 'Password: ')
-        var password = await this.terminal.inputField().promise
+        this.terminal.moveTo(1, 1)
+        this.terminal.bgColor(bgColor || 'black')
+        this.terminal.color(color || 'white')
+        this.terminal.bold(message)
+        this.terminal.bgColor256(this.#colorThemes['default'].bg)
+        this.terminal.color256(this.#colorThemes['default'].fg)
+    }
+
+    /**
+     * Displays an input field and returns the input.
+     *
+     * @param {string} prompt - The prompt to display.
+     * @param {number} x - The x position of the input field.
+     * @param {number} y - The y position of the input field.
+     * @param {RegExp} [ regex ] - The regular expression to validate the input.
+     * @param {string} [ errorMessage ] - The error message to display if the regex does not match.
+     * @returns {Promise} - A promise that resolves to the input.
+     * @async
+     * @public
+     * @example
+     * ui.startInputField('Username: ', 1, 1).then((input) => {
+     *   console.log(input)
+     * })
+     * .catch((error) => {
+     *  console.log(error)
+     * })
+     *
+     */
+    async startInputField(prompt, x, y, errorMessage, regex) {
+        if (!this.#started) return
+
+        this.terminal.moveTo(x, y, prompt + ': ')
+        var input = await this.terminal.inputField().promise
 
         return new Promise((resolve, reject) => {
-            if (username === undefined || username == '')
-                reject(new Error('Username is undefined or empty.'))
-
-            if (password === undefined || password == '')
-                reject(new Error('Password is undefined or empty.'))
-
-            resolve({ username: username, password: password })
+            if (input === undefined || input == '')
+                reject(errorMessage || 'Input is undefined or empty.')
+            else if (regex && !regex.test(input)) {
+                reject(errorMessage || 'Input does not match the regular expression.')
+            } else resolve(input)
         })
     }
 
@@ -322,7 +368,7 @@ export class UI extends EventEmitter {
             '#008080': this.terminal.brightCyan,
             '#ffffff': this.terminal.brightWhite,
             default: {
-                fg: 'black',
+                fg: 255,
                 bg: 0,
                 // Random color from 0 to 255 using the seed as the starting point.
                 // see can be a string or a number.
