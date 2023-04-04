@@ -14,7 +14,7 @@ export class MessagePort extends EventEmitter {
     #scrolled = 'none'
 
     // The default background color of the message port.
-    #defaultBGColor = 0
+    #defaultBGColor = 53
     #defaultColor = 'white'
 
     #currentBGColor = this.#defaultBGColor
@@ -203,6 +203,9 @@ export class MessagePort extends EventEmitter {
             messageFormatted
         )
 
+        this.buffer.draw({
+            delta: true,
+        })
         // Update the current line.
         this.#currentLine += messageHeight
     }

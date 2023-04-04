@@ -23,6 +23,8 @@ export class UI extends EventEmitter {
     #messages = []
     #moreMessages = []
 
+    #msgInputY = 0
+
     #currentInput = null
     #msgPortWidth = 0
     #msgPortHeight = 0
@@ -88,6 +90,9 @@ export class UI extends EventEmitter {
      */
     constructor() {
         super()
+
+        this.menu = undefined
+        this.menuText = ''
     }
 
     // display the messages
@@ -117,12 +122,13 @@ export class UI extends EventEmitter {
             this.#setThemes()
 
             this.terminal.bgColor(this.#colorThemes['default'].bg)
+            this.#msgInputY = this.terminal.height - 2
 
             // Initialize the UI port.
             this.uiPort = new ScreenBuffer({
                 dst: this.terminal,
                 width: this.terminal.width,
-                height: this.terminal.height - this.#msgPortY - 3,
+                height: this.terminal.height - this.#msgPortY - 4,
                 x: this.#uiPortX,
                 y: this.#uiPortY,
                 attr: {
@@ -164,16 +170,40 @@ export class UI extends EventEmitter {
         this.#started = true
     }
 
-    startMainScreen(callback) {
+    async startMainScreen(callback) {
         if (!this.#started) return
-        this.terminal.moveTo(1, this.terminal.height - 1, this.#msgPrompt)
-        this.#detectInput()
 
         // Draw the UI.
-        this.messagePort.draw()
-        this.uiPort.draw()
+        this.#drawUI()
+
+        this.terminal.color256(this.#colorThemes['default'].fg)
+        this.terminal.moveTo(1, this.#msgInputY, this.#msgPrompt)
+
+        this.#detectInput()
 
         if (callback) callback(this)
+    }
+
+    displayMenu(menu) {
+        if (!this.#started) return
+
+        if (!this.menu) {
+            this.menu = menu
+
+            this.terminal.moveTo(1, this.terminal.height)
+            this.terminal.eraseLine()
+
+            const keys = Object.keys(this.menu)
+
+            keys.forEach((key) => {
+                const option = this.menu[key]
+                const keyString = this.terminal.bold.italic.str(key)
+                this.menuText += `${keyString}: ${option.label}  `
+            })
+        }
+
+        this.terminal(this.menuText)
+        if (this.#currentInput) this.#currentInput.redraw()
     }
 
     /**
@@ -282,8 +312,9 @@ export class UI extends EventEmitter {
             color: msgObject.color,
         })
 
-        this.messagePort.draw()
         this.uiPort.draw()
+        // this.messagePort.draw()
+        // this.#drawUI()
 
         if (this.#currentInput) {
             this.#currentInput.redraw()
@@ -322,7 +353,8 @@ export class UI extends EventEmitter {
                 }
 
                 this.terminal.eraseLine()
-                this.terminal.moveTo(1, this.terminal.height - 1, this.#msgPrompt)
+                this.terminal.color256(this.#colorThemes['default'].fg)
+                this.terminal.moveTo(1, this.#msgInputY, this.#msgPrompt)
                 // this.terminal.saveCursor()
                 this.#detectInput()
             }
@@ -350,46 +382,65 @@ export class UI extends EventEmitter {
                 this.messagePort.scrollUp()
                 break
             case 'CTRL_A':
-                this.emit('menuKey', '1')
+                this.emit('menuKey', 'CTRL_A')
                 break
             case 'CTRL_B':
-                this.emit('menuKey', '2')
+                this.emit('menuKey', 'CTRL_B')
                 break
             case 'CTRL_D':
-                this.emit('menuKey', '4')
+                this.emit('menuKey', 'CTRL_D')
                 break
             case 'CTRL_E':
-                this.emit('menuKey', '5')
+                this.emit('menuKey', 'CTRL_E')
                 break
             case 'CTRL_F':
-                this.emit('menuKey', '6')
+                this.emit('menuKey', 'CTRL_F')
                 break
             case 'CTRL_G':
-                this.emit('menuKey', '7')
+                this.emit('menuKey', 'CTRL_G')
                 break
             case 'CTRL_H':
-                this.emit('menuKey', '8')
+                this.emit('menuKey', 'CTRL_H')
                 break
-            // CTRL_I is tab
-            // case 'CTRL_I':
-            //     this.emit('menuKey', '9')
-            //     break
             case 'CTRL_J':
-                this.emit('menuKey', '10')
+                this.emit('menuKey', 'CTRL_J')
+                break
+            case 'CTRL_K':
+                this.emit('menuKey', 'CTRL_K')
+                break
+            case 'CTRL_L':
+                this.emit('menuKey', 'CTRL_L')
+                break
+            case 'CTRL_M':
+                this.emit('menuKey', 'CTRL_M')
+                break
+            case 'CTRL_N':
+                this.emit('menuKey', 'CTRL_N')
+                break
+            case 'CTRL_O':
+                this.emit('menuKey', 'CTRL_O')
+                break
+            case 'CTRL_P':
+                this.emit('menuKey', 'CTRL_P')
+                break
+            case 'CTRL_Q':
+                this.emit('menuKey', 'CTRL_Q')
+                break
+            case 'CTRL_R':
+                this.emit('menuKey', 'CTRL_R')
+                break
+            case 'CTRL_S':
+                this.emit('menuKey', 'CTRL_S')
                 break
             default:
                 break
         }
     }
 
-    #addPort(port) {
-        this.#ports.push(port)
-    }
-
     #drawUI() {
-        this.ports.forEach((port) => {
-            port.draw()
-        })
+        this.uiPort.draw()
+        this.messagePort.draw()
+        this.#displayMenu()
     }
 
     #setThemes() {

@@ -36,6 +36,14 @@ export default class Menu {
         this.options[key] = option
     }
 
+    getOption(key) {
+        return this.options[key]
+    }
+
+    getOptions() {
+        return this.options
+    }
+
     /**
      * Make a selection.
      *
@@ -45,8 +53,6 @@ export default class Menu {
         // Invoke the corresponding command.
         if (this.options[option]) {
             this.options[option].command.execute(args)
-        } else {
-            throw new Error('Invalid option.')
         }
     }
 }
